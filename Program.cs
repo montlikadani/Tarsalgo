@@ -41,9 +41,9 @@ namespace tarsalgo {
             }
 
             Console.WriteLine("\n\n5. feladat");
-            int max = szemelyek.Max(one => one.Bentlevok);
+            int max = szemelyek.Max(one => one.Bent);
 
-            Console.WriteLine($"Például {szemelyek.Find(szem => szem.Bentlevok == max).Time:HH:mm}-kor voltak a legtöbben a társalgóban.");
+            Console.WriteLine($"Például {szemelyek.Find(szem => szem.Bent == max).Time:HH:mm}-kor voltak a legtöbben a társalgóban.");
 
             Console.WriteLine("\n6. feladat");
             Console.Write("Adja meg a személy azonosítóját: ");
@@ -51,19 +51,25 @@ namespace tarsalgo {
 
             Console.WriteLine("\n7. feladat");
             List<Szemely> all = szemelyek.FindAll(szem => szem.Id == personId);
+            int total = 0;
 
             for (int i = 0; i < all.Count; i += 2) {
-                Console.Write($"{all[i].Time:HH:mm} -");
+                Szemely first = all[i];
+
+                Console.Write($"{first.Time:HH:mm} -");
 
                 int next = i + 1;
 
                 if (next < all.Count) {
-                    Console.WriteLine($" {all[next].Time:HH:mm}");
+                    Szemely sec = all[next];
+
+                    Console.WriteLine($" {sec.Time:HH:mm}");
+                    total += sec.TimeMinute - first.TimeMinute;
                 }
             }
 
             Console.WriteLine("\n\n8. feladat");
-            Console.WriteLine($"A(z) {personId}. személy összesen {all.Find(szem => szem.Id == personId).TimeMinute} percet volt bent, a megfigyelés végén a társalgóban.");
+            Console.WriteLine($"A(z) {personId}. személy összesen {(total < 0 ? 0 : total)} percet volt bent, a megfigyelés végén a társalgóban.");
 
             Console.ReadKey();
         }
@@ -75,19 +81,21 @@ namespace tarsalgo {
             public int Id { get; private set; }
             public bool Outside { get; private set; }
             public DateTime Time { get; private set; }
-            public int Bentlevok { get; private set; } = 0;
+            public int Bent { get; private set; }
+
+            private static int Bentlevok = 0;
 
             public Szemely(string data) {
-                string[] split = data.Split(' ');
+                string[] split = data.Remove(data.Length - 1).Split(' ');
 
                 TimeHour = int.Parse(split[0]);
                 TimeMinute = int.Parse(split[1]);
                 Id = int.Parse(split[2]);
-                
-                if (!(Outside = split[3].Contains("ki"))) {
-                    Bentlevok++;
-                } else {
-                    Bentlevok--;
+
+                if (!(Outside = "ki".Equals(split[3]))) {
+                    Bent = Bentlevok++;
+                } else if (Bentlevok > 0) {
+                    Bent = Bentlevok--;
                 }
 
                 DateTime now = DateTime.Now;
